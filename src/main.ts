@@ -36,6 +36,8 @@ async function proxyImage(url: string): Promise<Response> {
   const res = new Response(proxied.body, {
     headers: {
       ...(contentType ? { 'Content-Type': contentType } : {}),
+      'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   });
 
