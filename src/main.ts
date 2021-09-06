@@ -1,4 +1,5 @@
 import { acceptableMimeType } from './mime';
+import { decodeHex } from './hex';
 
 const CAMO_HEADER_VIA = 'Camo Asset Proxy';
 
@@ -16,7 +17,11 @@ async function handleRequest(request: Request): Promise<Response> {
     });
 
   const requestUrl = new URL(request.url);
-  const url = requestUrl.searchParams.get('url');
+  const components = requestUrl.pathname.split('/');
+  const digest = components[0];
+
+  if (components.length > 2) return notFound('Not found');
+  const url = components.length == 2 ? decodeHex(components[1]) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
 
   return proxyImage(url, request);
