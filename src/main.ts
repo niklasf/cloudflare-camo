@@ -1,4 +1,4 @@
-import { acceptable } from './mime';
+import { acceptableMimeType } from './mime';
 
 const CAMO_HEADER_VIA = 'Camo Asset Proxy';
 
@@ -29,7 +29,7 @@ async function proxyImage(url: string): Promise<Response> {
   });
 
   const contentType = proxied.headers.get('Content-Type');
-  if (!contentType || !acceptable.includes(contentType)) {
+  if (!contentType || !acceptableMimeType(contentType)) {
     return new Response('Mime type not allowed', { status: 404 });
   }
 

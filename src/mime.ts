@@ -1,4 +1,4 @@
-export const acceptable = [
+const whitelist = [
   'image/bmp',
   'image/gif',
   'image/jp2',
@@ -9,3 +9,7 @@ export const acceptable = [
   'image/tiff',
   'image/webp',
 ];
+
+export function acceptableMimeType(contentType: string): boolean {
+  return whitelist.includes(contentType.split(';')[0]);
+}
