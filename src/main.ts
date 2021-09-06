@@ -29,17 +29,23 @@ async function proxyImage(url: string): Promise<Response> {
   });
 
   const contentType = proxied.headers.get('Content-Type');
-  if (!contentType || !acceptableMimeType(contentType)) {
-    return new Response('Mime type not allowed', { status: 404 });
-  }
+  if (!contentType || !acceptableMimeType(contentType)) return notFound('Mime type not supported');
 
-  const res = new Response(proxied.body, {
+  return new Response(proxied.body, {
     headers: {
       ...(contentType ? { 'Content-Type': contentType } : {}),
       'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
       'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   });
+}
 
-  return res;
+function notFound(message: string): Response {
+  return new Response(message, {
+    status: 404,
+    headers: {
+      Expires: '0',
+      'Cache-Control': 'no-cache, no-store, private, must-revalidate',
+    },
+  });
 }
