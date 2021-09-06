@@ -11,6 +11,7 @@ addEventListener('fetch', event => {
 });
 
 async function handleRequest(request: Request): Promise<Response> {
+  // Check request method.
   if (request.method !== 'GET')
     return new Response('Method not allowed', {
       status: 405,
@@ -19,21 +20,23 @@ async function handleRequest(request: Request): Promise<Response> {
       },
     });
 
+  // Extract parameters.
   const requestUrl = new URL(request.url);
   const components = requestUrl.pathname.split('/');
   if (components[0] || components.length > 3) return notFound('Not found');
 
+  // Determine digest and target URL.
   const digest = decodeHex(components[1]);
   const url =
     components.length == 3 ? new TextDecoder().decode(decodeHex(components[2])) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
 
+  // Limiting length also prevents recursion.
   if (url.length > 2048) return new Response('URI too long', { status: 414 });
 
+  // Verify signature.
   const hmac = { name: 'HMAC', hash: 'SHA-256' };
-
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(CAMO_KEY), hmac, false, ['verify']);
-
   if (!(await crypto.subtle.verify(hmac, key, digest, new TextEncoder().encode(url))))
     return new Response('Invalid signature', { status: 403 });
 
@@ -41,6 +44,7 @@ async function handleRequest(request: Request): Promise<Response> {
 }
 
 async function proxyImage(url: string, request: Request): Promise<Response> {
+  // Make request to target URL.
   let proxied: Response;
   try {
     proxied = await fetch(url, {
@@ -57,12 +61,12 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
     return notFound(`Fetch error: ${err}`);
   }
 
+  // Forward sanitized response.
   if (proxied.status == 304) {
     return new Response(null, { status: 304 });
   } else if (proxied.status == 200) {
     const contentType = proxied.headers.get('Content-Type');
     if (!contentType || !acceptableMimeType(contentType)) return notFound(`Content-Type not supported: ${contentType}`);
-
     return new Response(proxied.body, {
       status: proxied.status,
       headers: nonEmpty({
