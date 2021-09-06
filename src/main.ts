@@ -28,8 +28,10 @@ async function proxyImage(url: string): Promise<Response> {
     },
   });
 
+  if (![200, 304].includes(proxied.status)) return notFound('Unexpected status code');
+
   const contentType = proxied.headers.get('Content-Type');
-  if (!contentType || !acceptableMimeType(contentType)) return notFound('Mime type not supported');
+  if (!contentType || !acceptableMimeType(contentType)) return notFound('Content-Type not supported');
 
   return new Response(proxied.body, {
     headers: {
