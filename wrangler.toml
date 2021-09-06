@@ -1,4 +1,4 @@
-name = "cloudflare-camo"
+name = "camo"
 type = "javascript"
 
 account_id = ""
