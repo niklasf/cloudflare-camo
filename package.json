@@ -1,6 +1,7 @@
 {
-  "name": "cloudflare-camo",
+  "name": "camo",
   "version": "1.0.0",
+  "private": true,
   "description": "Proxy images for privacy, to avoid mixed content, and to add headers",
   "keywords": [
     "worker",
