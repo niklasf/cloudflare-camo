@@ -53,26 +53,30 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
     return notFound(`Fetch error: ${err}`);
   }
 
-  if (![200, 304].includes(proxied.status)) return notFound(`Unexpected status code: ${proxied.status}`);
+  if (proxied.status == 304) {
+    return new Response(null, { status: 304 });
+  } else if (proxied.status == 200) {
+    const contentType = proxied.headers.get('Content-Type');
+    if (!contentType || !acceptableMimeType(contentType)) return notFound(`Content-Type not supported: ${contentType}`);
 
-  const contentType = proxied.headers.get('Content-Type');
-  if (!contentType || !acceptableMimeType(contentType)) return notFound(`Content-Type not supported: ${contentType}`);
-
-  return new Response(proxied.body, {
-    status: proxied.status,
-    headers: nonEmpty({
-      'Content-Type': contentType,
-      'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
-      ETag: proxied.headers.get('ETag'),
-      Expires: proxied.headers.get('Expires'),
-      'Last-Modified': proxied.headers.get('Last-Modified'),
-      'Content-Length': proxied.headers.get('Content-Length'),
-      'Transfer-Encoding': proxied.headers.get('Transfer-Encoding'),
-      'Content-Encoding': proxied.headers.get('Content-Encoding'),
-      'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
-      'Cross-Origin-Resource-Policy': 'cross-origin',
-    }),
-  });
+    return new Response(proxied.body, {
+      status: proxied.status,
+      headers: nonEmpty({
+        'Content-Type': contentType,
+        'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
+        ETag: proxied.headers.get('ETag'),
+        Expires: proxied.headers.get('Expires'),
+        'Last-Modified': proxied.headers.get('Last-Modified'),
+        'Content-Length': proxied.headers.get('Content-Length'),
+        'Transfer-Encoding': proxied.headers.get('Transfer-Encoding'),
+        'Content-Encoding': proxied.headers.get('Content-Encoding'),
+        'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+      }),
+    });
+  } else {
+    return notFound(`Unexpected status code: ${proxied.status}`);
+  }
 }
 
 function notFound(message: string): Response {
