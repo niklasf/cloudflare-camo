@@ -3,7 +3,7 @@ import { decodeHex, nonEmpty } from './util';
 
 declare global {
   const CAMO_KEY: string;
-  const CAMO_HEADER_VIA: string | undefined;
+  const CAMO_HEADER_VIA: string;
 }
 
 addEventListener('fetch', event => {
