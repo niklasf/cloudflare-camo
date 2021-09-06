@@ -45,6 +45,8 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
         'User-Agent': CAMO_HEADER_VIA,
         Accept: request.headers.get('Accept') || 'image/*',
         'Accept-Encoding': request.headers.get('Accept-Encoding'),
+        'If-Modified-Since': request.headers.get('If-Modified-Since'),
+        'If-None-Match': request.headers.get('If-None-Match'),
       }),
     });
   } catch (err) {
@@ -57,6 +59,7 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
   if (!contentType || !acceptableMimeType(contentType)) return notFound(`Content-Type not supported: ${contentType}`);
 
   return new Response(proxied.body, {
+    status: proxied.status,
     headers: nonEmpty({
       'Content-Type': contentType,
       'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
