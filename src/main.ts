@@ -15,9 +15,11 @@ async function handleRequest(request: Request): Promise<Response> {
       },
     });
 
-  return proxyImage(
-    'https://preview.redd.it/zin69hb06vl71.jpg?width=4624&format=pjpg&auto=webp&s=4c982611ef6f1c45806830fe4d736392cc8fc034'
-  );
+  const requestUrl = new URL(request.url);
+  const url = requestUrl.searchParams.get('url');
+  if (!url) return notFound('Missing URL parameter');
+
+  return proxyImage(url, request);
 }
 
 async function proxyImage(url: string, request: Request): Promise<Response> {
