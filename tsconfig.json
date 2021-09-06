@@ -1,0 +1,9 @@
+{
+  "include": ["src"],
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["esnext", "webworker"],
+    "target": "ES2017",
+    "types": ["@cloudflare/workers-types"]
+  }
+}

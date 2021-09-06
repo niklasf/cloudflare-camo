@@ -12,9 +12,10 @@
   "author": "Niklas Fiekas <niklas.fiekas@backscattering.de>",
   "funding": "https://github.com/sponsors/niklasf",
   "license": "AGPL-3.0-or-later",
-  "main": "index.js",
+  "main": "dist/worker.js",
   "scripts": {
-    "prepare": "rollup --config"
+    "prepare": "rollup --config",
+    "dev": "wrangler dev"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^2",
