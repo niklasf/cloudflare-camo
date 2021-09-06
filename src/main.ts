@@ -28,7 +28,7 @@ async function handleRequest(request: Request): Promise<Response> {
     components.length == 3 ? new TextDecoder().decode(decodeHex(components[2])) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
 
-  console.log(components, digest, url);
+  if (url.length > 2048) return notFound('URL too long');
 
   if (!(await crypto.subtle.verify(hmac, await CAMO_KEY, digest, new TextEncoder().encode(url))))
     return notFound('Invalid signature');
