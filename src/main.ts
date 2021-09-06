@@ -25,6 +25,7 @@ async function proxyImage(url: string): Promise<Response> {
   try {
     proxied = await fetch(url, {
       headers: {
+        Accept: 'image/*',
         Via: CAMO_HEADER_VIA,
         'User-Agent': CAMO_HEADER_VIA,
       },
