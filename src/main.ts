@@ -5,7 +5,7 @@ addEventListener('fetch', event => {
  * Respond with hello worker text
  * @param {Request} request
  */
-async function handleRequest(request) {
+async function handleRequest(request: Request): Promise<Response> {
   return new Response('Hello worker!', {
     headers: { 'content-type': 'text/plain' },
   });
