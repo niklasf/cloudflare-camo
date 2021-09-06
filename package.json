@@ -1,0 +1,27 @@
+{
+  "name": "cloudflare-camo",
+  "version": "1.0.0",
+  "description": "Proxy images for privacy, to avoid mixed content, and to add headers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niklasf/cloudflare-camo.git"
+  },
+  "keywords": [
+    "worker",
+    "proxy",
+    "camo"
+  ],
+  "author": "Niklas Fiekas",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/niklasf/cloudflare-camo/issues"
+  },
+  "homepage": "https://github.com/niklasf/cloudflare-camo#readme",
+  "devDependencies": {
+    "@cloudflare/wrangler": "^1.19.2"
+  }
+}
