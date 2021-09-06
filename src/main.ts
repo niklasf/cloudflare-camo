@@ -21,22 +21,39 @@ async function handleRequest(request: Request): Promise<Response> {
 }
 
 async function proxyImage(url: string): Promise<Response> {
-  const proxied = await fetch(url, {
-    headers: {
-      Via: CAMO_HEADER_VIA,
-      'User-Agent': CAMO_HEADER_VIA,
-    },
-  });
+  let proxied: Response;
+  try {
+    proxied = await fetch(url, {
+      headers: {
+        Via: CAMO_HEADER_VIA,
+        'User-Agent': CAMO_HEADER_VIA,
+      },
+    });
+  } catch (err) {
+    return notFound(`Fetch error: ${err}`);
+  }
 
-  if (![200, 304].includes(proxied.status)) return notFound('Unexpected status code');
+  if (![200, 304].includes(proxied.status)) return notFound(`Unexpected status code: ${proxied.status}`);
 
   const contentType = proxied.headers.get('Content-Type');
-  if (!contentType || !acceptableMimeType(contentType)) return notFound('Content-Type not supported');
+  if (!contentType || !acceptableMimeType(contentType)) return notFound(`Content-Type not supported: ${contentType}`);
+
+  const originalHeader = (name: string, fallback?: string) => {
+    const value = proxied.headers.get(name) || fallback;
+    return value ? { [name]: value } : {};
+  };
 
   return new Response(proxied.body, {
     headers: {
       ...(contentType ? { 'Content-Type': contentType } : {}),
-      'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
+      ...originalHeader('Cache-Control', 'public, max-age=31536000'),
+      ...originalHeader('ETag'),
+      ...originalHeader('Expires'),
+      ...originalHeader('Last-Modified'),
+      ...originalHeader('Content-Length'),
+      ...originalHeader('Transfer-Encoding'),
+      ...originalHeader('Content-Encoding'),
+      'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
       'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   });
@@ -48,6 +65,7 @@ function notFound(message: string): Response {
     headers: {
       Expires: '0',
       'Cache-Control': 'no-cache, no-store, private, must-revalidate',
+      'Content-Type': 'text/plain',
     },
   });
 }
