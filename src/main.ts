@@ -28,10 +28,10 @@ async function handleRequest(request: Request): Promise<Response> {
     components.length == 3 ? new TextDecoder().decode(decodeHex(components[2])) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
 
-  if (url.length > 2048) return notFound('URL too long');
+  if (url.length > 2048) return new Response('URI too long', { status: 414 });
 
   if (!(await crypto.subtle.verify(hmac, await CAMO_KEY, digest, new TextEncoder().encode(url))))
-    return notFound('Invalid signature');
+    return new Response('Invalid signature', { status: 403 });
 
   return proxyImage(url, request);
 }
