@@ -20,14 +20,20 @@ async function handleRequest(request: Request): Promise<Response> {
   );
 }
 
-async function proxyImage(url: string): Promise<Response> {
+async function proxyImage(url: string, request: Request): Promise<Response> {
+  const transferredHeader = (name: string, fallback?: string) => {
+    const value = request.headers.get(name) || fallback;
+    return value ? { [name]: value } : {};
+  };
+
   let proxied: Response;
   try {
     proxied = await fetch(url, {
       headers: {
-        Accept: 'image/*',
         Via: CAMO_HEADER_VIA,
         'User-Agent': CAMO_HEADER_VIA,
+        ...transferredHeader('Accept', 'image/*'),
+        ...transferredHeader('Accept-Encoding'),
       },
     });
   } catch (err) {
