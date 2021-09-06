@@ -63,7 +63,7 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
       status: proxied.status,
       headers: nonEmpty({
         'Content-Type': contentType,
-        'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=31536000',
+        'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=1209600',
         ETag: proxied.headers.get('ETag'),
         Expires: proxied.headers.get('Expires'),
         'Last-Modified': proxied.headers.get('Last-Modified'),
