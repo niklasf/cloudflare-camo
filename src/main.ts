@@ -29,7 +29,7 @@ async function handleRequest(request: Request): Promise<Response> {
   const digest = decodeHex(components[1]);
   const url =
     components.length == 3 ? new TextDecoder().decode(decodeHex(components[2])) : requestUrl.searchParams.get('url');
-  if (!url) return notFound('Missing URL parameter');
+  if (!url) return notFound('Not found: Missing URL parameter or path component');
 
   // Limiting length also prevents recursion.
   if (url.length > 2048) return new Response('URI too long', { status: 414 });
@@ -38,12 +38,12 @@ async function handleRequest(request: Request): Promise<Response> {
   const hmac = { name: 'HMAC', hash: 'SHA-256' };
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(CAMO_KEY), hmac, false, ['verify']);
   if (!(await crypto.subtle.verify(hmac, key, digest, new TextEncoder().encode(url))))
-    return new Response('Invalid signature', { status: 403 });
+    return new Response('Access denied: Invalid signature', { status: 403 });
 
   return proxyImage(url, request);
 }
 
-async function proxyImage(url: string, request: Request): Promise<Response> {
+async function proxyImage(url: string, original: Request): Promise<Response> {
   // Make request to target URL.
   let proxied: Response;
   try {
@@ -51,10 +51,10 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
       headers: nonEmpty({
         Via: CAMO_HEADER_VIA,
         'User-Agent': CAMO_HEADER_VIA,
-        Accept: request.headers.get('Accept') || 'image/*',
-        'Accept-Encoding': request.headers.get('Accept-Encoding'),
-        'If-Modified-Since': request.headers.get('If-Modified-Since'),
-        'If-None-Match': request.headers.get('If-None-Match'),
+        Accept: original.headers.get('Accept') || 'image/*',
+        'Accept-Encoding': original.headers.get('Accept-Encoding'),
+        'If-Modified-Since': original.headers.get('If-Modified-Since'),
+        'If-None-Match': original.headers.get('If-None-Match'),
       }),
     });
   } catch (err) {
