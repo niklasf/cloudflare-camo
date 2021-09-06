@@ -1,10 +1,11 @@
 import { acceptableMimeType } from './mime';
 import { decodeHex, nonEmpty } from './util';
 
-const hmac = { name: 'HMAC', hash: 'SHA-256' };
+declare global {
+  const CAMO_KEY: string;
+}
 
 const CAMO_HEADER_VIA = 'Camo Asset Proxy';
-const CAMO_KEY = crypto.subtle.importKey('raw', new TextEncoder().encode('secret'), hmac, false, ['verify']);
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
@@ -30,7 +31,11 @@ async function handleRequest(request: Request): Promise<Response> {
 
   if (url.length > 2048) return new Response('URI too long', { status: 414 });
 
-  if (!(await crypto.subtle.verify(hmac, await CAMO_KEY, digest, new TextEncoder().encode(url))))
+  const hmac = { name: 'HMAC', hash: 'SHA-256' };
+
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(CAMO_KEY), hmac, false, ['verify']);
+
+  if (!(await crypto.subtle.verify(hmac, key, digest, new TextEncoder().encode(url))))
     return new Response('Invalid signature', { status: 403 });
 
   return proxyImage(url, request);
@@ -64,8 +69,10 @@ async function proxyImage(url: string, request: Request): Promise<Response> {
       headers: nonEmpty({
         'Content-Type': contentType,
         'Cache-Control': proxied.headers.get('Cache-Control') || 'public, max-age=1209600',
+        Date: proxied.headers.get('Date'),
         ETag: proxied.headers.get('ETag'),
         Expires: proxied.headers.get('Expires'),
+        Vary: proxied.headers.get('Vary'),
         'Last-Modified': proxied.headers.get('Last-Modified'),
         'Content-Length': proxied.headers.get('Content-Length'),
         'Transfer-Encoding': proxied.headers.get('Transfer-Encoding'),
