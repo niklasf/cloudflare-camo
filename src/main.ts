@@ -1,7 +1,10 @@
 import { acceptableMimeType } from './mime';
 import { decodeHex } from './hex';
 
+const hmac = { name: 'HMAC', hash: 'SHA-256' };
+
 const CAMO_HEADER_VIA = 'Camo Asset Proxy';
+const CAMO_KEY = crypto.subtle.importKey('raw', new TextEncoder().encode('secret'), hmac, false, ['verify']);
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
@@ -18,11 +21,18 @@ async function handleRequest(request: Request): Promise<Response> {
 
   const requestUrl = new URL(request.url);
   const components = requestUrl.pathname.split('/');
-  const digest = components[0];
+  if (components[0] || components.length > 3) return notFound('Not found');
 
-  if (components.length > 2) return notFound('Not found');
-  const url = components.length == 2 ? decodeHex(components[1]) : requestUrl.searchParams.get('url');
+  const digest = components[1];
+  const url = components.length == 3 ? decodeHex(components[2]) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
+
+  console.log(components, digest, url);
+
+  if (
+    !(await crypto.subtle.verify(hmac, await CAMO_KEY, new TextEncoder().encode(digest), new TextEncoder().encode(url)))
+  )
+    return notFound('Invalid signature');
 
   return proxyImage(url, request);
 }
