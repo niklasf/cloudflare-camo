@@ -23,15 +23,14 @@ async function handleRequest(request: Request): Promise<Response> {
   const components = requestUrl.pathname.split('/');
   if (components[0] || components.length > 3) return notFound('Not found');
 
-  const digest = components[1];
-  const url = components.length == 3 ? decodeHex(components[2]) : requestUrl.searchParams.get('url');
+  const digest = decodeHex(components[1]);
+  const url =
+    components.length == 3 ? new TextDecoder().decode(decodeHex(components[2])) : requestUrl.searchParams.get('url');
   if (!url) return notFound('Missing URL parameter');
 
   console.log(components, digest, url);
 
-  if (
-    !(await crypto.subtle.verify(hmac, await CAMO_KEY, new TextEncoder().encode(digest), new TextEncoder().encode(url)))
-  )
+  if (!(await crypto.subtle.verify(hmac, await CAMO_KEY, digest, new TextEncoder().encode(url))))
     return notFound('Invalid signature');
 
   return proxyImage(url, request);
