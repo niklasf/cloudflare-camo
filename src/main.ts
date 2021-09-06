@@ -3,9 +3,8 @@ import { decodeHex, nonEmpty } from './util';
 
 declare global {
   const CAMO_KEY: string;
+  const CAMO_HEADER_VIA: string | undefined;
 }
-
-const CAMO_HEADER_VIA = 'Camo Asset Proxy';
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
