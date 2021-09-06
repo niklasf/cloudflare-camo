@@ -1,3 +1,5 @@
+import { acceptable } from './mime';
+
 const CAMO_HEADER_VIA = 'Camo Asset Proxy';
 
 addEventListener('fetch', event => {
@@ -27,6 +29,9 @@ async function proxyImage(url: string): Promise<Response> {
   });
 
   const contentType = proxied.headers.get('Content-Type');
+  if (!contentType || !acceptable.includes(contentType)) {
+    return new Response('Mime type not allowed', { status: 404 });
+  }
 
   const res = new Response(proxied.body, {
     headers: {
