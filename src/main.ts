@@ -82,6 +82,7 @@ async function proxyImage(url: string, original: Request): Promise<Response> {
         'Content-Encoding': proxied.headers.get('Content-Encoding'),
         'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
         'Cross-Origin-Resource-Policy': 'cross-origin',
+        'X-Content-Type-Options': 'nosniff',
       }),
     });
   } else {
